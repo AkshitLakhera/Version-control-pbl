@@ -120,6 +120,34 @@ int is_file_in_index(const char *filename) {
     return 0;
 }
 
+// ------------------- Diff ---------------------
+
+void show_diff(const char *file1, const char *file2) {
+    FILE *f1 = fopen(file1, "r");
+    FILE *f2 = fopen(file2, "r");
+    if (!f1 || !f2) return;
+
+    char line1[512], line2[512];
+    int lineno = 1;
+    while (fgets(line1, sizeof(line1), f1) && fgets(line2, sizeof(line2), f2)) {
+        if (strcmp(line1, line2) != 0) {
+            printf("Line %d changed:\n- %s+ %s", lineno, line1, line2);
+        }
+        lineno++;
+    }
+
+    while (fgets(line1, sizeof(line1), f1)) {
+        printf("Line %d removed:\n- %s", lineno++, line1);
+    }
+
+    while (fgets(line2, sizeof(line2), f2)) {
+        printf("Line %d added:\n+ %s", lineno++, line2);
+    }
+
+    fclose(f1);
+    fclose(f2);
+}
+
 // ------------------- VCS Commands ---------------------
 
 void init_repo() {
@@ -225,6 +253,17 @@ void show_status() {
         char hash[HASH_SIZE];
         simple_hash_file(files[i], hash);
         printf("- %s : %s\n", files[i], hash);
+
+        // Show diff with last committed version
+        for (int j = 0; j < file_count; j++) {
+            if (strcmp(files[i], file_version_map[j].filename) == 0) {
+                char obj_path[512];
+                snprintf(obj_path, sizeof(obj_path), "%s/%s", OBJECTS_DIR, file_version_map[j].hash);
+                printf("Diff for %s:\n", files[i]);
+                show_diff(obj_path, files[i]);
+                break;
+            }
+        }
     }
 }
 
@@ -260,23 +299,6 @@ void checkout(const char *commit_id) {
     }
     fclose(log);
     printf("Checked out commit %s\n", commit_id);
-}
-
-void show_diff(const char *file1, const char *file2) {
-    FILE *f1 = fopen(file1, "r");
-    FILE *f2 = fopen(file2, "r");
-    if (!f1 || !f2) return;
-
-    char line1[512], line2[512];
-    int lineno = 1;
-    while (fgets(line1, sizeof(line1), f1) && fgets(line2, sizeof(line2), f2)) {
-        if (strcmp(line1, line2) != 0) {
-            printf("Line %d changed:\n- %s+ %s", lineno, line1, line2);
-        }
-        lineno++;
-    }
-    fclose(f1);
-    fclose(f2);
 }
 
 // ---------------------- Main ---------------------------
