@@ -1,14 +1,3 @@
-/*
- * Full Version Control System in C
- * Cross-platform (Linux/macOS/Windows)
- * Features:
- * - Init, Add, Commit, Log, Status, Checkout
- * - Doubly linked list for commit history
- * - Hash map for file-version mapping
- * - Parent-pointer commit graph
- * - Basic line-level diffing
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -41,7 +30,7 @@
 #define COLOR_CYAN "\033[36m"
 
 // --------------------- Data Structures ----------------------
-
+//hash = hash * 33 + c;
 typedef struct CommitNode {
     char id[64];
     char message[MAX_COMMIT_MSG];
